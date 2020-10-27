@@ -41,27 +41,67 @@ import org.apache.rocketmq.store.config.FlushDiskType;
 import org.apache.rocketmq.store.util.LibC;
 import sun.nio.ch.DirectBuffer;
 
+/**
+ * 文件内存映射，Netty ByteBuffer 处理文件
+ */
 public class MappedFile extends ReferenceResource {
-    public static final int OS_PAGE_SIZE = 1024 * 4;
     protected static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
-
+    /**
+     * 默认页大小
+     */
+    public static final int OS_PAGE_SIZE = 1024 * 4;
+    /**
+     * JVM虚拟映射内存总大小
+     */
     private static final AtomicLong TOTAL_MAPPED_VIRTUAL_MEMORY = new AtomicLong(0);
-
+    /**
+     * jvm中 mmap 数量
+     */
     private static final AtomicInteger TOTAL_MAPPED_FILES = new AtomicInteger(0);
+    /**
+     * 当前写文件位置
+     */
     protected final AtomicInteger wrotePosition = new AtomicInteger(0);
+    /**
+     * 提交位置
+     */
     protected final AtomicInteger committedPosition = new AtomicInteger(0);
+    /**
+     * 刷盘位置
+     */
     private final AtomicInteger flushedPosition = new AtomicInteger(0);
+    /**
+     * 文件大小
+     */
     protected int fileSize;
+    /**
+     * 文件终端
+     */
     protected FileChannel fileChannel;
     /**
      * Message will put to here first, and then reput to FileChannel if writeBuffer is not null.
      */
     protected ByteBuffer writeBuffer = null;
+    /**
+     * 暂存池
+     */
     protected TransientStorePool transientStorePool = null;
     private String fileName;
+    /**
+     * 映射起始偏移量
+     */
     private long fileFromOffset;
+    /**
+     * 映射文件
+     */
     private File file;
+    /**
+     * 映射文件内存对象
+     */
     private MappedByteBuffer mappedByteBuffer;
+    /**
+     * 最后一条消息保存时间
+     */
     private volatile long storeTimestamp = 0;
     private boolean firstCreateInQueue = false;
 
@@ -188,10 +228,16 @@ public class MappedFile extends ReferenceResource {
         return fileChannel;
     }
 
+    /**
+     * 单个消息的保存
+     */
     public AppendMessageResult appendMessage(final MessageExtBrokerInner msg, final AppendMessageCallback cb) {
         return appendMessagesInner(msg, cb);
     }
 
+    /**
+     * 多个消息的保存
+     */
     public AppendMessageResult appendMessages(final MessageExtBatch messageExtBatch, final AppendMessageCallback cb) {
         return appendMessagesInner(messageExtBatch, cb);
     }
@@ -200,6 +246,9 @@ public class MappedFile extends ReferenceResource {
         assert messageExt != null;
         assert cb != null;
 
+        /**
+         * 获取当前文件可写的位置
+         */
         int currentPos = this.wrotePosition.get();
 
         if (currentPos < this.fileSize) {
@@ -207,6 +256,11 @@ public class MappedFile extends ReferenceResource {
             byteBuffer.position(currentPos);
             AppendMessageResult result;
             if (messageExt instanceof MessageExtBrokerInner) {
+
+                /**
+                 * todo 这里进行文件的追加
+                 * AppendMessageCallback接口的实现DefaultAppendMessageCallback是CommitLog中的非静态内部类
+                 */
                 result = cb.doAppend(this.getFileFromOffset(), byteBuffer, this.fileSize - currentPos, (MessageExtBrokerInner) messageExt);
             } else if (messageExt instanceof MessageExtBatch) {
                 result = cb.doAppend(this.getFileFromOffset(), byteBuffer, this.fileSize - currentPos, (MessageExtBatch) messageExt);

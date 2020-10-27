@@ -221,6 +221,7 @@ public class MQClientInstance {
         return mqList;
     }
 
+    // todo MQClient 启动
     public void start() throws MQClientException {
 
         synchronized (this) {
@@ -233,10 +234,16 @@ public class MQClientInstance {
                     }
                     // Start request-response channel
                     this.mQClientAPIImpl.start();
+
+                    // todo 开启定时任务
                     // Start various schedule tasks
                     this.startScheduledTask();
+
+                    // todo 开启拉消息的服务（线程）
                     // Start pull service
                     this.pullMessageService.start();
+
+                    // todo 开启负载均衡服务（线程）
                     // Start rebalance service
                     this.rebalanceService.start();
                     // Start push service
@@ -252,7 +259,10 @@ public class MQClientInstance {
         }
     }
 
+    // 定时任务更新数据
     private void startScheduledTask() {
+
+        // todo 每隔2分钟获取namesrv信息
         if (null == this.clientConfig.getNamesrvAddr()) {
             this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
@@ -267,6 +277,7 @@ public class MQClientInstance {
             }, 1000 * 10, 1000 * 60 * 2, TimeUnit.MILLISECONDS);
         }
 
+        // todo 每隔30秒更新主题路由信息
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
@@ -279,6 +290,7 @@ public class MQClientInstance {
             }
         }, 10, this.clientConfig.getPollNameServerInterval(), TimeUnit.MILLISECONDS);
 
+        // todo 每隔30秒进行broker心跳检测
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
@@ -292,6 +304,7 @@ public class MQClientInstance {
             }
         }, 1000, this.clientConfig.getHeartbeatBrokerInterval(), TimeUnit.MILLISECONDS);
 
+        // todo 每隔5秒持久化消费者offset
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
@@ -304,6 +317,7 @@ public class MQClientInstance {
             }
         }, 1000 * 10, this.clientConfig.getPersistConsumerOffsetInterval(), TimeUnit.MILLISECONDS);
 
+        // todo 每隔1分钟检查线程池适配
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override

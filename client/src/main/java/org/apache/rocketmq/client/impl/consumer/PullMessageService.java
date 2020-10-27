@@ -86,12 +86,14 @@ public class PullMessageService extends ServiceThread {
         }
     }
 
+    // todo 消息的拉取
     @Override
     public void run() {
         log.info(this.getServiceName() + " service started");
 
         while (!this.isStopped()) {
             try {
+                // 从阻塞队列中take
                 PullRequest pullRequest = this.pullRequestQueue.take();
                 this.pullMessage(pullRequest);
             } catch (InterruptedException ignored) {

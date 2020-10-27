@@ -387,6 +387,7 @@ public class ConsumeQueue {
                 cqExtUnit.setMsgStoreTime(request.getStoreTimestamp());
                 cqExtUnit.setTagsCode(request.getTagsCode());
 
+                // todo 使用 netty 中 ByteBuffer 进行文件写入 consumequeue
                 long extAddr = this.consumeQueueExt.put(cqExtUnit);
                 if (isExtAddr(extAddr)) {
                     tagsCode = extAddr;

@@ -193,6 +193,7 @@ public class ConsumeMessageOrderlyService implements ConsumeMessageService {
         return result;
     }
 
+    // todo 提交偏移量的
     @Override
     public void submitConsumeRequest(
         final List<MessageExt> msgs,

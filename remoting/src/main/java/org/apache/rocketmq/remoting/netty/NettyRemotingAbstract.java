@@ -404,6 +404,7 @@ public abstract class NettyRemotingAbstract {
         }
     }
 
+    // 使用neety进行网络通信
     public RemotingCommand invokeSyncImpl(final Channel channel, final RemotingCommand request,
         final long timeoutMillis)
         throws InterruptedException, RemotingSendRequestException, RemotingTimeoutException {
@@ -412,6 +413,8 @@ public abstract class NettyRemotingAbstract {
         try {
             final ResponseFuture responseFuture = new ResponseFuture(channel, opaque, timeoutMillis, null, null);
             this.responseTable.put(opaque, responseFuture);
+
+            // socket address neety 创建监听。
             final SocketAddress addr = channel.remoteAddress();
             channel.writeAndFlush(request).addListener(new ChannelFutureListener() {
                 @Override
@@ -430,6 +433,7 @@ public abstract class NettyRemotingAbstract {
                 }
             });
 
+            // 等待结果
             RemotingCommand responseCommand = responseFuture.waitResponse(timeoutMillis);
             if (null == responseCommand) {
                 if (responseFuture.isSendRequestOK()) {
@@ -440,6 +444,7 @@ public abstract class NettyRemotingAbstract {
                 }
             }
 
+            // 返回
             return responseCommand;
         } finally {
             this.responseTable.remove(opaque);

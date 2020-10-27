@@ -426,6 +426,8 @@ public class DefaultMessageStore implements MessageStore {
         }
 
         long beginTime = this.getSystemClock().now();
+
+        // todo commitLog的提交
         CompletableFuture<PutMessageResult> putResultFuture = this.commitLog.asyncPutMessage(msg);
 
         putResultFuture.thenAccept((result) -> {
@@ -486,6 +488,8 @@ public class DefaultMessageStore implements MessageStore {
         }
 
         long beginTime = this.getSystemClock().now();
+
+        // todo 提交CommitLog。
         PutMessageResult result = this.commitLog.putMessage(msg);
         long elapsedTime = this.getSystemClock().now() - beginTime;
         if (elapsedTime > 500) {
@@ -1873,6 +1877,7 @@ public class DefaultMessageStore implements MessageStore {
         }
     }
 
+    // todo 内部类 实时更新消息消费队列和索引文件
     class ReputMessageService extends ServiceThread {
 
         private volatile long reputFromOffset = 0;
@@ -1916,6 +1921,7 @@ public class DefaultMessageStore implements MessageStore {
                     this.reputFromOffset, DefaultMessageStore.this.commitLog.getMinOffset());
                 this.reputFromOffset = DefaultMessageStore.this.commitLog.getMinOffset();
             }
+
             for (boolean doNext = true; this.isCommitLogAvailable() && doNext; ) {
 
                 if (DefaultMessageStore.this.getMessageStoreConfig().isDuplicationEnable()
@@ -1923,6 +1929,7 @@ public class DefaultMessageStore implements MessageStore {
                     break;
                 }
 
+                // todo 从commitlog中获取数据（根据上次的偏移量）
                 SelectMappedBufferResult result = DefaultMessageStore.this.commitLog.getData(reputFromOffset);
                 if (result != null) {
                     try {
@@ -1935,6 +1942,7 @@ public class DefaultMessageStore implements MessageStore {
 
                             if (dispatchRequest.isSuccess()) {
                                 if (size > 0) {
+                                    // todo 使用DefaultMessageStore的doDispatch方法，最终会构建消息队列和索引文件
                                     DefaultMessageStore.this.doDispatch(dispatchRequest);
 
                                     if (BrokerRole.SLAVE != DefaultMessageStore.this.getMessageStoreConfig().getBrokerRole()
@@ -1989,6 +1997,7 @@ public class DefaultMessageStore implements MessageStore {
         public void run() {
             DefaultMessageStore.log.info(this.getServiceName() + " service started");
 
+            // todo 更新消息队列和索引文件， 线程每隔1毫秒就去同步commitLog 至 consumequeue 和 index
             while (!this.isStopped()) {
                 try {
                     Thread.sleep(1);

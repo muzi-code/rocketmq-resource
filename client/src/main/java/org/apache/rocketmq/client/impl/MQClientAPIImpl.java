@@ -418,6 +418,7 @@ public class MQClientAPIImpl {
 
     }
 
+    // 同步发送的sendMessage
     public SendResult sendMessage(
         final String addr,
         final String brokerName,
@@ -431,6 +432,7 @@ public class MQClientAPIImpl {
         return sendMessage(addr, brokerName, msg, requestHeader, timeoutMillis, communicationMode, null, null, null, 0, context, producer);
     }
 
+    // 通用的sendMessage
     public SendResult sendMessage(
         final String addr,
         final String brokerName,
@@ -466,8 +468,10 @@ public class MQClientAPIImpl {
         }
         request.setBody(msg.getBody());
 
+        // todo 1. 通过判断发送类型，最终调用了对应不同的发送方法。
         switch (communicationMode) {
             case ONEWAY:
+                // todo 1.1. oneWay发送
                 this.remotingClient.invokeOneway(addr, request, timeoutMillis);
                 return null;
             case ASYNC:
@@ -476,6 +480,7 @@ public class MQClientAPIImpl {
                 if (timeoutMillis < costTimeAsync) {
                     throw new RemotingTooMuchRequestException("sendMessage call timeout");
                 }
+                // todo 1.2. 异步发送
                 this.sendMessageAsync(addr, brokerName, msg, timeoutMillis - costTimeAsync, request, sendCallback, topicPublishInfo, instance,
                     retryTimesWhenSendFailed, times, context, producer);
                 return null;
@@ -484,6 +489,8 @@ public class MQClientAPIImpl {
                 if (timeoutMillis < costTimeSync) {
                     throw new RemotingTooMuchRequestException("sendMessage call timeout");
                 }
+
+                // todo 1.3. 同步发送，
                 return this.sendMessageSync(addr, brokerName, msg, timeoutMillis - costTimeSync, request);
             default:
                 assert false;
@@ -493,6 +500,7 @@ public class MQClientAPIImpl {
         return null;
     }
 
+    // 同步消息发送，借助 remotingClient 消息发送模块去发送消息。
     private SendResult sendMessageSync(
         final String addr,
         final String brokerName,
