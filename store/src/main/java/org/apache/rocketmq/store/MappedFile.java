@@ -108,7 +108,10 @@ public class MappedFile extends ReferenceResource {
     public MappedFile() {
     }
 
+    // todo 初始化 mappedFile
     public MappedFile(final String fileName, final int fileSize) throws IOException {
+
+        // 重载
         init(fileName, fileSize);
     }
 
@@ -188,6 +191,7 @@ public class MappedFile extends ReferenceResource {
         this.transientStorePool = transientStorePool;
     }
 
+    // todo 初始化 mappedFile
     private void init(final String fileName, final int fileSize) throws IOException {
         this.fileName = fileName;
         this.fileSize = fileSize;
@@ -198,7 +202,10 @@ public class MappedFile extends ReferenceResource {
         ensureDirOK(this.file.getParent());
 
         try {
+            // todo 初始化 fileChannel 基于映射的文件去获取fileChannel
             this.fileChannel = new RandomAccessFile(this.file, "rw").getChannel();
+
+            // todo mappedByteBuffer 只能通过 fileChannel 的 map 方法来取得。 (使用directByteBuffer构造的对象)
             this.mappedByteBuffer = this.fileChannel.map(MapMode.READ_WRITE, 0, fileSize);
             TOTAL_MAPPED_VIRTUAL_MEMORY.addAndGet(fileSize);
             TOTAL_MAPPED_FILES.incrementAndGet();
@@ -210,6 +217,7 @@ public class MappedFile extends ReferenceResource {
             log.error("Failed to map file " + this.fileName, e);
             throw e;
         } finally {
+            // fileChannel 关闭
             if (!ok && this.fileChannel != null) {
                 this.fileChannel.close();
             }

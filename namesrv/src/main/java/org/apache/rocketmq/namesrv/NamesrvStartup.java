@@ -51,10 +51,14 @@ public class NamesrvStartup {
         main0(args);
     }
 
+    // 启动 namesrv
     public static NamesrvController main0(String[] args) {
 
         try {
+            // 创建 NamesrvController
             NamesrvController controller = createNamesrvController(args);
+
+            // 启动 NamesrvController
             start(controller);
             String tip = "The Name Server boot success. serializeType=" + RemotingCommand.getSerializeTypeConfigInThisServer();
             log.info(tip);
