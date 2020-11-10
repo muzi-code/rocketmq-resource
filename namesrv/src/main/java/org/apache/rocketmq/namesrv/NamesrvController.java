@@ -107,6 +107,7 @@ public class NamesrvController {
 
         this.registerProcessor();
 
+        // 每隔十秒执行一次broker心跳检测
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
@@ -115,6 +116,7 @@ public class NamesrvController {
             }
         }, 5, 10, TimeUnit.SECONDS);
 
+        // 每隔10分钟打印配置信息
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
